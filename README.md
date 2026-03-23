@@ -1,58 +1,166 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+## Daftar Model & Relasi
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+```
+User
+ ├── coupleAsUser1()         → HasOne Couple (user1_id)
+ ├── coupleAsUser2()         → HasOne Couple (user2_id)
+ ├── couple()                → helper, returns Couple|null
+ ├── coupleInvites()         → HasMany CoupleInvite
+ ├── wallets()               → HasMany Wallet
+ ├── transactions()          → HasMany Transaction
+ ├── recurringTransactions() → HasMany RecurringTransaction
+ ├── goals()                 → HasMany Goal (created_by)
+ ├── goalContributions()     → HasMany GoalContribution
+ ├── splitBillsPaid()        → HasMany SplitBill (paid_by)
+ ├── notifications()         → HasMany Notification
+ └── calendarSyncs()         → HasMany CalendarSync
 
-## About Laravel
+Couple
+ ├── user1()                 → BelongsTo User
+ ├── user2()                 → BelongsTo User
+ ├── members()               → helper, Collection of users
+ ├── wallets()               → HasMany Wallet
+ ├── categories()            → HasMany Category
+ ├── transactions()          → HasMany Transaction
+ ├── recurringTransactions() → HasMany RecurringTransaction
+ ├── goals()                 → HasMany Goal
+ ├── splitBillEvents()       → HasMany SplitBillEvent
+ ├── splitBills()            → HasMany SplitBill
+ ├── budgets()               → HasMany Budget
+ ├── missions()              → HasMany CoupleMission
+ ├── reminders()             → HasMany Reminder
+ ├── badges()                → HasMany CoupleBadge
+ ├── financialScores()       → HasMany FinancialScore
+ ├── notifications()         → HasMany Notification
+ ├── calendarSyncs()         → HasMany CalendarSync
+ └── reportsCache()          → HasMany ReportsCache
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+CoupleInvite
+ └── inviter()               → BelongsTo User
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Wallet
+ ├── couple()                → BelongsTo Couple
+ ├── user()                  → BelongsTo User
+ ├── transactions()          → HasMany Transaction
+ └── recurringTransactions() → HasMany RecurringTransaction
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Category
+ ├── couple()                → BelongsTo Couple (nullable, null = default)
+ ├── transactions()          → HasMany Transaction
+ ├── recurringTransactions() → HasMany RecurringTransaction
+ └── budgets()               → HasMany Budget
+ Scopes: scopeDefaults(), scopeForCouple($coupleId)
 
-## Learning Laravel
+Transaction
+ ├── couple()                → BelongsTo Couple
+ ├── user()                  → BelongsTo User
+ ├── wallet()                → BelongsTo Wallet
+ ├── category()              → BelongsTo Category
+ ├── goalContribution()      → HasOne GoalContribution
+ ├── splitBill()             → HasOne SplitBill
+ └── reminder()              → HasOne Reminder
+ Scopes: scopeExpenses(), scopeIncome(), scopeForMonth($year, $month)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+RecurringTransaction
+ ├── couple()                → BelongsTo Couple
+ ├── user()                  → BelongsTo User
+ ├── category()              → BelongsTo Category
+ └── wallet()                → BelongsTo Wallet
+ Scopes: scopeActive(), scopeDueToday()
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Goal
+ ├── couple()                → BelongsTo Couple
+ ├── creator()               → BelongsTo User (created_by)
+ ├── milestoneRecords()      → HasMany GoalMilestone (ordered)
+ └── contributions()         → HasMany GoalContribution
+ Helpers: progressPercentage(), isCompleted()
+ Scopes: scopeActive()
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+GoalMilestone
+ └── goal()                  → BelongsTo Goal
 
-## Agentic Development
+GoalContribution
+ ├── goal()                  → BelongsTo Goal
+ ├── user()                  → BelongsTo User
+ └── transaction()           → BelongsTo Transaction
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+SplitBillEvent
+ ├── couple()                → BelongsTo Couple
+ └── splitBills()            → HasMany SplitBill
+ Helpers: totalAmount()
 
-```bash
-composer require laravel/boost --dev
+SplitBill
+ ├── couple()                → BelongsTo Couple
+ ├── paidBy()                → BelongsTo User (paid_by)
+ ├── transaction()           → BelongsTo Transaction
+ └── event()                 → BelongsTo SplitBillEvent
+ Scopes: scopeUnsettled()
 
-php artisan boost:install
+Budget
+ ├── couple()                → BelongsTo Couple
+ └── category()              → BelongsTo Category
+ Helpers: spentAmount(), remainingAmount(), usagePercentage()
+ Scopes: scopeForPeriod($year, $month)
+
+Mission
+ └── coupleMissions()        → HasMany CoupleMission
+ Scopes: scopeActive()
+
+CoupleMission
+ ├── couple()                → BelongsTo Couple
+ └── mission()               → BelongsTo Mission
+ Scopes: scopeActive(), scopeCompleted()
+
+Reminder
+ ├── couple()                → BelongsTo Couple
+ ├── transaction()           → BelongsTo Transaction
+ └── calendarSync()          → HasOne CalendarSync
+ Scopes: scopeActive()
+
+Badge
+ └── coupleBadges()          → HasMany CoupleBadge
+ Scopes: scopeActive()
+
+CoupleBadge  (no timestamps)
+ ├── couple()                → BelongsTo Couple
+ └── badge()                 → BelongsTo Badge
+
+FinancialScore
+ └── couple()                → BelongsTo Couple
+ Helpers: FinancialScore::resolveLevel($score) [static]
+ Scopes: scopeLatest(), scopeForYear($year)
+
+Notification  (UUID primary key, uses HasUuids)
+ ├── user()                  → BelongsTo User
+ └── couple()                → BelongsTo Couple
+ Helpers: isRead(), markAsRead()
+ Scopes: scopeUnread(), scopeRead(), scopeOfType($type)
+
+CalendarSync
+ ├── couple()                → BelongsTo Couple
+ ├── user()                  → BelongsTo User
+ └── reminder()              → BelongsTo Reminder
+ Scopes: scopeSynced(), scopePending(), scopeFailed()
+
+ReportsCache  ($table = 'reports_cache')
+ └── couple()                → BelongsTo Couple
+ Helpers: ReportsCache::remember($coupleId, $type, $year, $month, $callback) [static]
+ Scopes: scopeOfType($type), scopeForPeriod($year, $month)
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+## Catatan Penting
 
-## Contributing
+- **`Notification`** menggunakan UUID sebagai primary key via trait `HasUuids`.
+  Pastikan kolom `id` di migration tetap `uuid`.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- **`CoupleBadge`** meng-set `$timestamps = false` karena tabel hanya punya `earned_at`.
 
-## Code of Conduct
+- **`Category`** dengan `couple_id = null` adalah kategori default sistem.
+  Gunakan scope `scopeForCouple($coupleId)` untuk mengambil kategori milik couple
+  sekaligus kategori default dalam satu query.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+- **`ReportsCache::remember()`** bekerja mirip `Cache::remember()` Laravel — mengambil
+  data dari tabel jika sudah ada, atau menjalankan `$generator` untuk mengisinya.
 
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- **`FinancialScore::resolveLevel()`** adalah static helper untuk memetakan
+  skor numerik ke label teks sebelum disimpan ke kolom `level`.

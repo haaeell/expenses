@@ -5,34 +5,28 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Reminder extends Model
+class CoupleMission extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     protected $fillable = [
         'couple_id',
-        'transaction_id',
-        'title',
-        'message',
-        'type',
-        'frequency',
-        'notify_days_before',
-        'due_date',
-        'remind_at',
-        'is_active',
-        'last_sent_at',
+        'mission_id',
+        'status',
+        'progress',
+        'started_at',
+        'completed_at',
+        'deadline_at',
     ];
 
     protected function casts(): array
     {
         return [
-            'notify_days_before' => 'array',
-            'due_date'           => 'date',
-            'is_active'          => 'boolean',
-            'last_sent_at'       => 'datetime',
+            'progress'     => 'integer',
+            'started_at'   => 'datetime',
+            'completed_at' => 'datetime',
+            'deadline_at'  => 'datetime',
         ];
     }
 
@@ -43,20 +37,20 @@ class Reminder extends Model
         return $this->belongsTo(Couple::class);
     }
 
-    public function transaction(): BelongsTo
+    public function mission(): BelongsTo
     {
-        return $this->belongsTo(Transaction::class);
-    }
-
-    public function calendarSync(): HasOne
-    {
-        return $this->hasOne(CalendarSync::class);
+        return $this->belongsTo(Mission::class);
     }
 
     // ── Scopes ─────────────────────────────────────────────────────────────
 
     public function scopeActive($query)
     {
-        return $query->where('is_active', true);
+        return $query->where('status', 'active');
+    }
+
+    public function scopeCompleted($query)
+    {
+        return $query->where('status', 'completed');
     }
 }

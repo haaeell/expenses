@@ -1,41 +1,130 @@
 <?php
+
 namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Couple extends Model {
-  protected $fillable = [
-    'user1_id','user2_id','couple_name',
-    'anniversary_date','privacy_mode','health_score'
-  ];
-  protected function casts(): array {
-    return ['anniversary_date' => 'date'];
-  }
+class Couple extends Model
+{
+    use HasFactory;
 
-  public function user1() { return $this->belongsTo(User::class, 'user1_id'); }
-  public function user2() { return $this->belongsTo(User::class, 'user2_id'); }
-  public function wallets() { return $this->hasMany(Wallet::class); }
-  public function transactions() { return $this->hasMany(Transaction::class); }
-  public function goals() { return $this->hasMany(Goal::class); }
-  public function splitBills() { return $this->hasMany(SplitBill::class); }
-  public function budgets() { return $this->hasMany(Budget::class); }
-  public function reminders() { return $this->hasMany(Reminder::class); }
-  public function badges() { return $this->belongsToMany(Badge::class, 'couple_badges')->withPivot('earned_at'); }
-  public function categories() { return $this->hasMany(Category::class); }
+    protected $fillable = [
+        'user1_id',
+        'user2_id',
+        'couple_name',
+        'anniversary_date',
+        'privacy_mode',
+        'health_score',
+    ];
 
-  // Helper: dapatkan partner dari user tertentu
-  public function partnerOf($userId): ?User {
-    return $this->user1_id == $userId ? $this->user2 : $this->user1;
-  }
-
-  // Helper: total saldo hutang antar pasangan
-  public function debtBalance(): array {
-    $unsettled = $this->splitBills()->where('is_settled', false)->get();
-    $debt = [$this->user1_id => 0, $this->user2_id => 0];
-    foreach ($unsettled as $bill) {
-      $other = $bill->paid_by == $this->user1_id ? $this->user2_id : $this->user1_id;
-      $owedAmount = $bill->paid_by == $this->user1_id ? $bill->user2_amount : $bill->user1_amount;
-      $debt[$other] += $owedAmount;
+    protected function casts(): array
+    {
+        return [
+            'anniversary_date' => 'date',
+            'health_score'     => 'integer',
+        ];
     }
-    return $debt;
-  }
+
+    // ── Relationships ──────────────────────────────────────────────────────
+
+    public function user1(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user1_id');
+    }
+
+    public function user2(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user2_id');
+    }
+
+    public function invites(): HasMany
+    {
+        return $this->hasMany(CoupleInvite::class, 'inviter_id', 'user1_id');
+    }
+
+    public function wallets(): HasMany
+    {
+        return $this->hasMany(Wallet::class);
+    }
+
+    public function categories(): HasMany
+    {
+        return $this->hasMany(Category::class);
+    }
+
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
+    public function recurringTransactions(): HasMany
+    {
+        return $this->hasMany(RecurringTransaction::class);
+    }
+
+    public function goals(): HasMany
+    {
+        return $this->hasMany(Goal::class);
+    }
+
+    public function splitBillEvents(): HasMany
+    {
+        return $this->hasMany(SplitBillEvent::class);
+    }
+
+    public function splitBills(): HasMany
+    {
+        return $this->hasMany(SplitBill::class);
+    }
+
+    public function budgets(): HasMany
+    {
+        return $this->hasMany(Budget::class);
+    }
+
+    public function missions(): HasMany
+    {
+        return $this->hasMany(CoupleMission::class);
+    }
+
+    public function reminders(): HasMany
+    {
+        return $this->hasMany(Reminder::class);
+    }
+
+    public function badges(): HasMany
+    {
+        return $this->hasMany(CoupleBadge::class);
+    }
+
+    public function financialScores(): HasMany
+    {
+        return $this->hasMany(FinancialScore::class);
+    }
+
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class);
+    }
+
+    public function calendarSyncs(): HasMany
+    {
+        return $this->hasMany(CalendarSync::class);
+    }
+
+    public function reportsCache(): HasMany
+    {
+        return $this->hasMany(ReportsCache::class);
+    }
+
+    // ── Helpers ────────────────────────────────────────────────────────────
+
+    /** Returns both users as a collection */
+    public function members(): \Illuminate\Support\Collection
+    {
+        return collect([$this->user1, $this->user2])->filter();
+    }
 }

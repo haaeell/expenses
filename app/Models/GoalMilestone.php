@@ -6,38 +6,36 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 // ============================================================
-//  Badge
+//  GoalMilestone
 // ============================================================
-class Badge extends Model
+class GoalMilestone extends Model
 {
     use HasFactory;
 
     protected $fillable = [
+        'goal_id',
         'name',
-        'description',
-        'emoji',
-        'image_url',
-        'criteria',
-        'is_active',
+        'target_amount',
+        'order',
+        'is_reached',
+        'reached_at',
     ];
 
     protected function casts(): array
     {
         return [
-            'criteria'  => 'array',
-            'is_active' => 'boolean',
+            'target_amount' => 'decimal:2',
+            'order'         => 'integer',
+            'is_reached'    => 'boolean',
+            'reached_at'    => 'datetime',
         ];
     }
 
-    public function coupleBadges(): HasMany
+    public function goal(): BelongsTo
     {
-        return $this->hasMany(CoupleBadge::class);
-    }
-
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', true);
+        return $this->belongsTo(Goal::class);
     }
 }

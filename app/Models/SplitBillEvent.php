@@ -6,28 +6,26 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Wallet extends Model
+class SplitBillEvent extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     protected $fillable = [
         'couple_id',
-        'user_id',
         'name',
         'emoji',
-        'type',
-        'balance',
-        'color_hex',
-        'is_active',
+        'event_date',
+        'is_closed',
+        'closed_at',
     ];
 
     protected function casts(): array
     {
         return [
-            'balance'   => 'decimal:2',
-            'is_active' => 'boolean',
+            'event_date' => 'date',
+            'is_closed'  => 'boolean',
+            'closed_at'  => 'datetime',
         ];
     }
 
@@ -38,18 +36,15 @@ class Wallet extends Model
         return $this->belongsTo(Couple::class);
     }
 
-    public function user(): BelongsTo
+    public function splitBills(): HasMany
     {
-        return $this->belongsTo(User::class);
+        return $this->hasMany(SplitBill::class, 'event_id');
     }
 
-    public function transactions(): HasMany
-    {
-        return $this->hasMany(Transaction::class);
-    }
+    // ── Helpers ────────────────────────────────────────────────────────────
 
-    public function recurringTransactions(): HasMany
+    public function totalAmount(): float
     {
-        return $this->hasMany(RecurringTransaction::class);
+        return (float) $this->splitBills()->sum('total_amount');
     }
 }

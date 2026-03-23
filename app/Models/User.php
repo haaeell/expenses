@@ -2,11 +2,10 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -15,40 +14,92 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     protected $fillable = [
-        'name','email','password','nickname','avatar',
-        'color_hex','birth_date','gender'
+        'name',
+        'email',
+        'nickname',
+        'avatar',
+        'color_hex',
+        'birth_date',
+        'gender',
+        'password',
     ];
 
-    protected $hidden = ['password','remember_token'];
-
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-        'birth_date' => 'date'
+    protected $hidden = [
+        'password',
+        'remember_token',
     ];
 
-    // RELATION
-    public function couplesAsUser1()
+    protected function casts(): array
     {
-        return $this->hasMany(Couple::class, 'user1_id');
+        return [
+            'email_verified_at' => 'datetime',
+            'birth_date'        => 'date',
+            'password'          => 'hashed',
+        ];
     }
 
-    public function couplesAsUser2()
+    // ── Relationships ──────────────────────────────────────────────────────
+
+    /** Couple where this user is user1 */
+    public function coupleAsUser1(): HasOne
     {
-        return $this->hasMany(Couple::class, 'user2_id');
+        return $this->hasOne(Couple::class, 'user1_id');
     }
 
-    public function wallets()
+    /** Couple where this user is user2 */
+    public function coupleAsUser2(): HasOne
+    {
+        return $this->hasOne(Couple::class, 'user2_id');
+    }
+
+    /** Convenience: returns the couple regardless of slot */
+    public function couple(): ?Couple
+    {
+        return $this->coupleAsUser1 ?? $this->coupleAsUser2;
+    }
+
+    public function coupleInvites(): HasMany
+    {
+        return $this->hasMany(CoupleInvite::class, 'inviter_id');
+    }
+
+    public function wallets(): HasMany
     {
         return $this->hasMany(Wallet::class);
     }
 
-    public function transactions()
+    public function transactions(): HasMany
     {
         return $this->hasMany(Transaction::class);
     }
 
-    public function goals()
+    public function recurringTransactions(): HasMany
+    {
+        return $this->hasMany(RecurringTransaction::class);
+    }
+
+    public function goals(): HasMany
     {
         return $this->hasMany(Goal::class, 'created_by');
+    }
+
+    public function goalContributions(): HasMany
+    {
+        return $this->hasMany(GoalContribution::class);
+    }
+
+    public function splitBillsPaid(): HasMany
+    {
+        return $this->hasMany(SplitBill::class, 'paid_by');
+    }
+
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class);
+    }
+
+    public function calendarSyncs(): HasMany
+    {
+        return $this->hasMany(CalendarSync::class);
     }
 }
