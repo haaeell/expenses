@@ -33,8 +33,8 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'birth_date'        => 'date',
-            'password'          => 'hashed',
+            'birth_date' => 'date',
+            'password' => 'hashed',
         ];
     }
 
@@ -53,9 +53,19 @@ class User extends Authenticatable
     }
 
     /** Convenience: returns the couple regardless of slot */
-    public function couple(): ?Couple
+   public function getCoupleAttribute(): ?Couple
     {
         return $this->coupleAsUser1 ?? $this->coupleAsUser2;
+    }
+
+    public function loadCouple()
+    {
+        return $this->load([
+            'coupleAsUser1.user1',
+            'coupleAsUser1.user2',
+            'coupleAsUser2.user1',
+            'coupleAsUser2.user2',
+        ]);
     }
 
     public function coupleInvites(): HasMany

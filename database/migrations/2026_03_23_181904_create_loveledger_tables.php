@@ -56,8 +56,10 @@ return new class extends Migration {
         Schema::create('couple_invites', function (Blueprint $table) {
             $table->id();
             $table->foreignId('inviter_id')->constrained('users')->cascadeOnDelete();
-            $table->string('token', 8)->unique();
-            $table->enum('status', ['pending', 'accepted', 'expired'])->default('pending');
+            $table->string('token', 20)->unique();
+            $table->enum('status', ['pending', 'accepted', 'expired','cancelled'])->default('pending');
+            $table->foreignId('accepted_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamp('accepted_at')->nullable();
             $table->timestamp('expires_at');
             $table->timestamps();
         });

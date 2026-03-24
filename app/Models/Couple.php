@@ -120,11 +120,38 @@ class Couple extends Model
         return $this->hasMany(ReportsCache::class);
     }
 
-    // ── Helpers ────────────────────────────────────────────────────────────
+    // ─── Helper ───────────────────────────────────────────────────
 
-    /** Returns both users as a collection */
-    public function members(): \Illuminate\Support\Collection
+    /**
+     * Dapatkan partner dari user yang sedang login.
+     */
+    public function getPartner(User $user): ?User
     {
-        return collect([$this->user1, $this->user2])->filter();
+        if ($this->user1_id === $user->id) {
+            return $this->user2;
+        }
+        if ($this->user2_id === $user->id) {
+            return $this->user1;
+        }
+        return null;
     }
+
+    /**
+     * Cek apakah user adalah bagian dari pasangan ini.
+     */
+    public function hasMember(int $userId): bool
+    {
+        return $this->user1_id === $userId || $this->user2_id === $userId;
+    }
+
+    /**
+     * Nama tampilan pasangan (fallback ke "Nama1 & Nama2").
+     */
+    public function getDisplayNameAttribute(): string
+    {
+        return $this->couple_name
+            ?? "{$this->user1->name} & {$this->user2->name}";
+    }
+
+
 }
